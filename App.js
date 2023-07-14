@@ -9,10 +9,9 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate a loading delay for the splash screen
     setTimeout(() => {
       setIsLoading(false);
-    }, 3000); // Change the duration as needed
+    }, 4000); 
   }, []);
 
   if (isLoading) {
