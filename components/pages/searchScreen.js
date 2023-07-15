@@ -1,13 +1,49 @@
-import React from 'react';
-import { TouchableOpacity, View, Text, Image, StyleSheet, TextInput, ImageBackground } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { TouchableOpacity, View, Text, Image, StyleSheet,ActivityIndicator, TextInput, ImageBackground } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import getdata from '../../services/getdata';
+import { useNavigation } from '@react-navigation/native';
+
 const SearchScreen = () => {
   const [text, onChangeText] = React.useState('Useless Text');
   const [number, onChangeNumber] = React.useState('');
-  const handleButtonPress = () => {
-    // Perform the desired action when the button is pressed
-    console.log('Button pressed!');
+  const [weatherData, setWeatherData] = useState(null);
+  const [hasdata, setHasData] = useState(false);
+  const [city, setCity] = useState('');
+  const navigation = useNavigation();
+
+  if (hasdata) {
+    return (
+      <ImageBackground
+        source={require('../../assets/bg.png')}
+        style={styles.imageBackground}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="80" color="orange" />
+        </View>
+      </ImageBackground>
+    );
+  }
+  const handleButtonPress = async () => {
+    try {
+      setHasData(true);
+      const data = await getdata.getWeatherData(city);
+      if (data) {
+        setWeatherData(data);
+        await AsyncStorage.setItem('weatherData', JSON.stringify(data));
+        navigation.navigate('Home');
+      } else {
+        console.error('Weather data is undefined');
+      }
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+    } finally {
+      setHasData(false);
+    }
   };
+  
+  
   return (
     <ImageBackground
       source={require('../../assets/bg.png')}
@@ -25,8 +61,8 @@ const SearchScreen = () => {
           <TextInput
             width={300}
             style={styles.input}
-            onChangeText={onChangeNumber}
-            value={number}
+            onChangeText={setCity}
+            value={city}
             height={50}
             placeholder="Enter city name to search"
             keyboardType="text"
@@ -52,6 +88,11 @@ const SearchScreen = () => {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     alignItems: 'center',
